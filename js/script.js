@@ -125,79 +125,219 @@ activities.addEventListener("change", e => {
 
 
 //Payment section of my project.
-$('#paypal, #bitcoin').hide();
+/** Select Payment Method */  
 
-//Set credit card as default method
-$('#payment').val("credit card");
+$("select#payment option[value='credit card']").attr("selected", "selected"); 
+// shows as default
+$(".credit-card").val();
+$("#payment option:first").hide();
+$("p:contains(PayPal)").hide();
+$("p:contains(Bitcoin)").hide();
+// hide and show the credit card information
+$('#payment').on("change", function () {
+if ($(this).val() == 'credit card') { 
+$(".credit-card").show();
+} else {
+$(".credit-card").hide(); 
+}
 
-$('#payment').change(function(){
-	if ($('#payment option:selected').val() === "paypal") {
-		$('#credit-card, #bitcoin').hide();
-		$('#paypal').show();
-	} else if ($('#payment option:selected').val() === "bitcoin") {
-		$('#credit-card, #paypal').hide();
-		$('#bitcoin').show();
-	} else {
-		$('#credit-card').show();
-		$('#paypal, #bitcoin').hide();
-	}
+if ($(this).val() == 'paypal') { 
+$("p:contains(PayPal)").show()
+} else {
+$("p:contains(PayPal)").hide()
+}
+
+if ($(this).val() == 'bitcoin') { 
+$("p:contains(Bitcoin)").show()
+} else {
+$("p:contains(Bitcoin)").hide() 
+}
+
 });
 
 
+//Validation for my form
 
-
-
-function checkName(){
-  let nameField=$('#name').val();
-  let nameRegex=/^[a-zA-Z]+$/;
-  let Errname = false;
-  if (nameField == '' || !nameRegex.test(name))
-  namefield.after('<p id="nameError" class="error">Please  Enter Valid Name !!</p>');
-  else {
-    $('#nameError').remove();
-  }
+  //validate name function
+  const validateName = () => {
+    //remove any previous error messages
+    $('.nameVal').remove();
+    //get the input value for the name
+    let nameVal = $('#name').val();
+    if ( nameVal === "") {
+        $('#name').css('border-color', 'red').attr('placeholder', 'Please Enter Your Name');
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    } else if ( !isNaN(nameVal) ) {
+        $('#name').css('border-color', 'red');
+        $('#name').after('<p class="nameVal">Please enter a name using letters.</p>');
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    //if the value is text then make sure the border is the correct color and make button accessible
+    } else if ( isNaN(nameVal) ) {
+        $('#name').css('border-color', '#5e97b0');
+        $('button').prop('disabled', false).css('cursor', 'default');
+    }
 }
 
-function checkMail(){
-  let nameField=$('#mail').val();
-  let nameRegex=/^[a-zA-Z]+$/;
-  let Errname = false;
-  if (nameField == '' || !nameRegex.test(name))
-  namefield.after('<p id="nameError" class="error">Please  Enter Valid Name !!</p>');
-  else {
-    $('#nameError').remove();
-  }
+$('#name').keyup(validateName).focusout(validateName);
+
+//validate email function
+const validateEmail = () => {
+    $('.emailVal').remove();
+    //get the email input value
+    let emailVal = $('#mail').val();
+    let test = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if( emailVal === '') {
+        $('#mail').css('border-color', 'red').attr('placeholder', 'Please Enter Your Email');
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    }
+    else if ( test.test(emailVal) ) {
+        $('#mail').css('border-color', '#5e97b0');
+        $('button').prop('disabled', false).css('cursor', 'default');
+    
+    } else if ( !test.test(emailVal) ){
+        $('#mail').css('border-color', 'red');
+        $('#mail').after('<p class="emailVal">Please enter a valid email.</p>');
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    }
 }
 
-function checkCredit(){
-  let nameField=$('#name').val();
-  let nameRegex=/^[a-zA-Z]+$/;
-  let Errname = false;
-  if (nameField == '' || !nameRegex.test(name))
-  namefield.after('<p id="nameError" class="error">Please  Enter Valid Name !!</p>');
-  else {
-    $('#nameError').remove();
-  }
+$('#mail').keyup(validateEmail).focusout(validateEmail);
+
+//must choose at least one event validation
+const validateEvents = () => {
+    
+    $('.eventsVal').remove();
+  
+    let checkedEvents = [];
+    
+    $('.activities input:checked').each(() => {
+        checkedEvents.push($(this).text());
+    });
+    
+    if (checkedEvents.length < 1) {
+        $('.activities legend').css('color', 'red');
+        $('.activities').after('<p class="eventsVal">Please choose at least one event.</p>');
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    
+    } else {
+        $('button').prop('disabled', false).css('cursor', 'default');
+        $('.activities legend').css('color', '#184f68');
+    }
+}
+//call validation on change
+$('.activities').change(() => {
+    validateEvents();
+});
+
+//credit card validation
+//credit card number - must be numbers - must be between 13 & 16 numbers long
+const validateCC = () => {
+    //remove any previous error messages
+    $('.ccVal').remove();
+    
+    $('#cc-num').css('border-color', '#5e97b0');
+    
+    $('button').prop('disabled', false).css('cursor', 'default');
+    
+    let ccVal = $('#cc-num').val();
+    
+    if (!isNaN(ccVal) && ccVal != ''){
+      
+        let numbers = ccVal.split('');
+        if ( numbers.length < 13 || numbers.length > 16) {
+            $('#cc-num').css('border-color', 'red');
+            $('#cc-num').after(`<p class="ccVal">Credit Card must have at least 13 numbers and no more than 16 numbers.</p>`);
+            $('button').prop('disabled', true).css('cursor', 'not-allowed');
+        }
+    //if there is no numbers
+    } else if (ccVal === '') {
+        $('#cc-num').css('border-color', 'red');
+        $('#cc-num').after(`<p class="ccVal">Please enter a credit card number.</p>`);
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    } else {
+        $('#cc-num').css('border-color', 'red');
+        $('#cc-num').after(`<p class="ccVal">Please enter only numbers.</p>`);
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    }
+}
+//call the validate function
+$('#cc-num').keyup(validateCC).focusout(validateCC)
+const validateZip = () => {
+    
+    $('.zipVal').remove();
+    
+    $('#zip').css('border-color', '#5e97b0');
+    
+    $('button').prop('disabled', false).css('cursor', 'default');
+    
+    let zipVal = $('#zip').val();
+    
+    if (!isNaN(zipVal) && zipVal != ''){
+        let numbers = zipVal.split('');
+      
+        if ( numbers.length != 5) {
+            $('#zip').css('border-color', 'red');
+            $('#zip').after(`<p class="zipVal">Zip Code must be 5 numbers long.</p>`);
+            $('button').prop('disabled', true).css('cursor', 'not-allowed');
+        }
+    
+    } else if (zipVal === ''){
+        $('#zip').css('border-color', 'red');
+        $('#zip').after(`<p class="zipVal">Please enter a zip code.</p>`);
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    } else {
+        $('#zip').css('border-color', 'red');
+        $('#zip').after(`<p class="zipVal">Please enter only numbers.</p>`);
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    }
+}
+$('#zip').keyup(validateZip).focusout(validateZip);
+
+
+const validateCVV = () => {
+    
+    $('.cvvVal').remove();
+    
+    $('#cvv').css('border-color', '#5e97b0');
+    $('button').prop('disabled', false).css('cursor', 'default');
+    
+    let cvvVal = $('#cvv').val();
+    if (!isNaN(cvvVal) && cvvVal != ''){
+       
+        let numbers = cvvVal.split('');
+      
+        if ( numbers.length != 3) {
+            $('#cvv').css('border-color', 'red');
+            $('#cvv').after(`<p class="cvvVal">CVV must be 3 numbers long.</p>`);
+            $('button').prop('disabled', true).css('cursor', 'not-allowed');
+        }
+    
+    } else if (cvvVal === ''){
+        $('#cvv').css('border-color', 'red');
+        $('#cvv').after(`<p class="cvvVal">Please enter a CVV.</p>`);
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    } else {
+        $('#cvv').css('border-color', 'red');
+        $('#cvv').after(`<p class="cvvVal">Please enter only numbers.</p>`);
+        $('button').prop('disabled', true).css('cursor', 'not-allowed');
+    }
 }
 
-function checkNameZip(){
-  let nameField=$('#name').val();
-  let nameRegex=/^[a-zA-Z]+$/;
-  let Errname = false;
-  if (nameField == '' || !nameRegex.test(name))
-  namefield.after('<p id="nameError" class="error">Please  Enter Valid Name !!</p>');
-  else {
-    $('#nameError').remove();
-  }
-}
+$('#cvv').keyup(validateCVV).focusout(validateCVV);
 
-function checkCVV(){
-  let nameField=$('#name').val();
-  let nameRegex=/^[a-zA-Z]+$/;
-  let Errname = false;
-  if (nameField == '' || !nameRegex.test(name))
-  namefield.after('<p id="nameError" class="error">Please  Enter Valid Name !!</p>');
-  else {
-    $('#nameError').remove();
-  }
-}
+//make sure all the form is filled out before submitting form
+$('button').click(() => {
+    validateName();
+    validateEmail();
+    validateEvents();
+    let selected = $('#payment option:selected').text();
+    if (selected === "Credit Card" ) {
+        validateCC();
+        validateZip();
+        validateCVV();
+    }
+});
+; 
+ 
+
+  
